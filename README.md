@@ -17,7 +17,7 @@ pip install yt-dlp
 
 1. **Run the script:**
    ```sh
-   python video_downloader.py
+   python downloader.py
    ```
 
 2. **Enter the video or playlist URL** when prompted.
