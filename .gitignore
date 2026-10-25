@@ -1,0 +1,15 @@
+# build output
+build/
+dist/
+*.spec
+
+# runtime data
+.config/
+ffmpeg/
+ffmpeg.zip
+ffmpeg_temp/
+Downloads/
+
+# python
+__pycache__/
+*.pyc
