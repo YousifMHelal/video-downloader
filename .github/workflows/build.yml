@@ -24,8 +24,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt pyinstaller
 
-      - name: Smoke-test the engine
-        run: python -c "import app.core, app.store; print(app.core.QUALITY_LABELS)"
+      - name: Test the engine
+        run: python -m unittest discover tests -v
 
       - name: Build the executable
         run: python tools/build_exe.py --no-shortcuts

@@ -7,7 +7,8 @@ from typing import Protocol
 import customtkinter as ctk
 
 from . import theme as t
-from .core import (CONTAINER_LABELS, CONTAINERS, QUALITY_BY_ID, QUALITY_LABELS,
+from .core import (CONTAINER_LABELS, LABEL_BY_CONTAINER, QUALITY_BY_ID,
+                   QUALITY_LABELS,
                    Job, Status, human_eta, human_size, human_speed)
 from .store import HistoryEntry, relative_time
 from .table import Action, Actions, Badge, CanvasTable, Progress, Text, Title
@@ -537,8 +538,7 @@ class SettingsView(ctk.CTkFrame):
                           self.FOLDER_W - 2 * t.MD, keep_end=True)
         self.folder_value.configure(text=f"  {folder}")
         self.quality_var.set(quality.label)
-        self.container_var.set(dict(zip(CONTAINERS, CONTAINER_LABELS))[
-            settings.container])
+        self.container_var.set(LABEL_BY_CONTAINER[settings.container])
         self.container_menu.configure(
             state="disabled" if quality.audio_only else "normal")
         self.appearance.set(settings.appearance.capitalize())

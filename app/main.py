@@ -12,7 +12,7 @@ from tkinter import filedialog
 import customtkinter as ctk
 
 from . import theme as t
-from .core import (CONTAINER_LABELS, CONTAINERS, FFMPEG_DIR, PROJECT_ROOT,
+from .core import (CONTAINER_BY_LABEL, FFMPEG_DIR, PROJECT_ROOT,
                    QUALITY_BY_LABEL, Engine, Job, Status, ffmpeg_present,
                    human_speed, looks_like_url)
 from .dialogs import AboutDialog, AddDownloadDialog
@@ -29,6 +29,29 @@ def asset_dir() -> Path:
     """Assets live beside the source, or inside the PyInstaller bundle."""
     bundled = getattr(sys, "_MEIPASS", None)
     return Path(bundled) / "assets" if bundled else PROJECT_ROOT / "assets"
+
+
+def replay_as_latin(event):
+    """Make Ctrl shortcuts work under a non-Latin keyboard layout (Windows).
+
+    Tk matches keysyms, so with e.g. Arabic active Ctrl+V arrives as
+    Ctrl+<Arabic letter> and neither paste nor any app shortcut fires. The
+    Windows virtual-key code is layout-free (A-Z = 65-90, 0-9 = 48-57), so
+    the press is replayed as its Latin key and every binding sees it.
+    """
+    code = event.keycode
+    if not (65 <= code <= 90 or 48 <= code <= 57):
+        return None
+    if event.state & 0x20000:  # Alt held: AltGr typing (@, €, ą), not a shortcut
+        return None
+    latin = chr(code).lower()
+    if event.keysym.lower() == latin or not hasattr(event.widget,
+                                                     "event_generate"):
+        return None  # Latin layout: the normal bindings already ran
+    if event.state & 0x1:  # Shift: <Control-C> is Ctrl+Shift+C
+        latin = latin.upper()
+    event.widget.event_generate(f"<Control-Key-{latin}>")
+    return "break"
 
 
 class NavItem(ctk.CTkFrame):
@@ -400,6 +423,8 @@ class App(ctk.CTk):
         self.bind("<Control-C>", lambda _e: self.copy_selected_link())
         self.bind("<Delete>", self._shortcut_delete)
         self.bind("<Escape>", self._shortcut_escape)
+        if sys.platform == "win32":
+            self.bind_all("<Control-KeyPress>", replay_as_latin, add="+")
 
     def _typing(self) -> bool:
         """True when a text field has focus, so shortcuts stay out of the way."""
@@ -564,7 +589,7 @@ class App(ctk.CTk):
             self._settings_changed()
 
     def set_container(self, label: str) -> None:
-        chosen = dict(zip(CONTAINER_LABELS, CONTAINERS)).get(label)
+        chosen = CONTAINER_BY_LABEL.get(label)
         if chosen and chosen != self.settings.container:
             self.settings.container = chosen
             self._settings_changed()
@@ -633,7 +658,6 @@ class App(ctk.CTk):
                 self.log.append(line)
             elif name == "ffmpeg":
                 message, _percent = payload
-                self.status.set_state(message, t.WARN)
                 self.settings_view.set_ffmpeg_status(message)
                 self.log.append(message)
             elif name == "idle":
@@ -684,7 +708,9 @@ class App(ctk.CTk):
             text = f"{running.percent * 100:.0f}%  ·  {running.display_title}"
             self._set_title_progress(running.percent)
         else:
-            text = f"{running.status.value}  ·  {running.display_title}"
+            # message carries "Downloading ffmpeg… 40%" and "Stopping…"
+            text = (f"{running.message or running.status.value}  ·  "
+                    f"{running.display_title}")
             self._set_title_progress(None)
         if waiting:
             text += f"   ·   {waiting} waiting"

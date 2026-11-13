@@ -7,9 +7,11 @@ import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-from .core import CONTAINERS, QUALITY_BY_ID, Job, default_download_dir
+from .core import (CONTAINERS, PROJECT_ROOT, QUALITY_BY_ID, Job,
+                   default_download_dir)
 
-CONFIG_DIR = Path(__file__).resolve().parent.parent / ".config"
+# Not __file__: in the one-file exe that is a temp folder deleted on exit.
+CONFIG_DIR = PROJECT_ROOT / ".config"
 SETTINGS_FILE = CONFIG_DIR / "settings.json"
 HISTORY_FILE = CONFIG_DIR / "history.json"
 HISTORY_LIMIT = 300

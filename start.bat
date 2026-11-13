@@ -32,34 +32,24 @@ if not exist "%PY%" (
 )
 
 rem --- install or refresh requirements when they change ----------------------
-set "NEEDS_INSTALL=1"
-if exist "%STAMP%" (
-    for /f "usebackq delims=" %%H in (`certutil -hashfile "%~dp0requirements.txt" MD5 ^| find /v ":"`) do (
-        set "HASH=%%H"
-        goto :compare
-    )
+for /f "usebackq delims=" %%H in (`certutil -hashfile "%~dp0requirements.txt" MD5 ^| find /v ":"`) do (
+    set "HASH=%%H"
+    goto :compare
 )
 :compare
-if defined HASH (
-    set /p SAVED=<"%STAMP%" 2>nul
-    if "%SAVED%"=="%HASH%" set "NEEDS_INSTALL="
-)
+rem Kept outside ( ) blocks: cmd expands %VAR% there before set /p runs.
+set "NEEDS_INSTALL=1"
+set "SAVED="
+if exist "%STAMP%" set /p SAVED=<"%STAMP%"
+if defined HASH if "%SAVED%"=="%HASH%" set "NEEDS_INSTALL="
 
 if defined NEEDS_INSTALL (
     echo Installing requirements...
     "%PY%" -m pip install --upgrade pip --quiet
     "%PY%" -m pip install -r "%~dp0requirements.txt" || goto :failed
-    if defined HASH (
-        >"%STAMP%" echo %HASH%
-    ) else (
-        for /f "usebackq delims=" %%H in (`certutil -hashfile "%~dp0requirements.txt" MD5 ^| find /v ":"`) do (
-            >"%STAMP%" echo %%H
-            goto :launch
-        )
-    )
+    if defined HASH >"%STAMP%" echo %HASH%
 )
 
-:launch
 if exist "%PYW%" (
     start "" "%PYW%" "%~dp0gui.py"
 ) else (

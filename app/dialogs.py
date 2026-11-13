@@ -8,7 +8,8 @@ from tkinter import filedialog
 import customtkinter as ctk
 
 from . import theme as t
-from .core import (CONTAINER_LABELS, CONTAINERS, QUALITY_BY_ID,
+from .core import (CONTAINER_BY_LABEL, CONTAINER_LABELS, LABEL_BY_CONTAINER,
+                   QUALITY_BY_ID,
                    QUALITY_BY_LABEL, QUALITY_LABELS, looks_like_url)
 from .widgets import (divider, entry, field_label, hint_label, option_menu,
                       primary_button, secondary_button, value_box)
@@ -107,7 +108,7 @@ class AddDownloadDialog(Dialog):
         format_box.grid(row=0, column=1, sticky="nw", padx=(t.MD, 0))
         field_label(format_box, "Format").grid(row=0, column=0, sticky="w")
         self.container_var = ctk.StringVar(
-            value=dict(zip(CONTAINERS, CONTAINER_LABELS))[settings.container])
+            value=LABEL_BY_CONTAINER[settings.container])
         self.container_menu = option_menu(format_box, CONTAINER_LABELS, None,
                                           self.container_var, width=104)
         self.container_menu.grid(row=1, column=0, pady=(t.XS, 0))
@@ -156,8 +157,7 @@ class AddDownloadDialog(Dialog):
             self.error_label.configure(text="That does not look like a link.")
             return
         quality = QUALITY_BY_LABEL[self.quality_var.get()]
-        container = dict(zip(CONTAINER_LABELS, CONTAINERS))[
-            self.container_var.get()]
+        container = CONTAINER_BY_LABEL[self.container_var.get()]
         self._on_submit(url, quality.id, container, self.output_dir)
         self.destroy()
 

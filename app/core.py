@@ -82,6 +82,8 @@ QUALITY_BY_LABEL = {q.label: q for q in QUALITIES}
 
 CONTAINERS = ("mp4", "mkv", "webm")
 CONTAINER_LABELS = ("MP4", "MKV", "WebM")
+CONTAINER_BY_LABEL = dict(zip(CONTAINER_LABELS, CONTAINERS))
+LABEL_BY_CONTAINER = dict(zip(CONTAINERS, CONTAINER_LABELS))
 
 
 class Status(str, Enum):
@@ -155,7 +157,6 @@ def human_size(num: float) -> str:
         if num < 1024 or unit == "GB":
             return f"{num:.0f} {unit}" if unit in ("B", "KB") else f"{num:.1f} {unit}"
         num /= 1024
-    return f"{num:.1f} GB"
 
 
 def human_speed(bytes_per_sec: float) -> str:
@@ -212,10 +213,16 @@ def ensure_ffmpeg(on_status: Callable[[str, float], None] | None = None) -> str:
     zip_path = PROJECT_ROOT / "ffmpeg.zip"
     temp_dir = PROJECT_ROOT / "ffmpeg_temp"
 
+    last_percent = [-1]
+
     def hook(block_num: int, block_size: int, total_size: int) -> None:
-        if total_size > 0:
-            fraction = min(1.0, block_num * block_size / total_size)
-            report(f"Downloading ffmpeg… {fraction * 100:.0f}%", fraction)
+        if total_size <= 0:
+            return
+        fraction = min(1.0, block_num * block_size / total_size)
+        percent = int(fraction * 100)
+        if percent != last_percent[0]:  # called per 8 KB block: ~11k times
+            last_percent[0] = percent
+            report(f"Downloading ffmpeg… {percent}%", fraction)
 
     try:
         urllib.request.urlretrieve(FFMPEG_URL, zip_path, reporthook=hook)
@@ -417,14 +424,16 @@ class Engine:
             with self._lock:
                 job_id = self._pending.popleft() if self._pending else None
                 job = self._jobs.get(job_id) if job_id else None
+                if job is not None:
+                    # Under the lock, so a cancel() racing the pop is not lost.
+                    self._current = job.id
+                    self._cancel.clear()
             if job is None:
                 self._emit("idle", None)
                 self._wake.wait()
                 self._wake.clear()
                 continue
 
-            self._current = job.id
-            self._cancel.clear()
             try:
                 self._process(job)
             except Exception as exc:  # worker must never die
@@ -442,15 +451,23 @@ class Engine:
 
     def _process(self, job: Job) -> None:
         job.started_at = time.time()
-
-        if self._ffmpeg_path is None:
-            def status(message: str, percent: float) -> None:
-                self._emit("ffmpeg", (message, percent))
-            self._ffmpeg_path = ensure_ffmpeg(status)
-
+        # Before the ffmpeg fetch, so the job does not look "waiting" meanwhile.
         job.status = Status.PROBING
         job.message = ""
         self._emit("job", job)
+
+        if self._ffmpeg_path is None:
+            def status(message: str, percent: float) -> None:
+                if self._cancel.is_set():  # aborts urlretrieve via its hook
+                    raise DownloadCancelled("cancelled by user")
+                job.message = message
+                self._emit("ffmpeg", (message, percent))
+            try:
+                self._ffmpeg_path = ensure_ffmpeg(status)
+            except DownloadCancelled:
+                self._finish_cancelled(job)
+                return
+            job.message = ""
 
         try:
             title, is_playlist, count = probe(job.url)
@@ -495,7 +512,9 @@ class Engine:
         job.finished_at = time.time()
         if retcode:
             job.status = Status.FAILED
-            job.message = "Some items failed — see activity log."
+            job.message = ("Some items failed — see activity log."
+                           if job.is_playlist
+                           else "Download failed — see activity log.")
         else:
             job.status = Status.DONE
             job.percent = 1.0
