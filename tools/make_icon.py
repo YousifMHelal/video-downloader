@@ -15,9 +15,9 @@ from PIL import Image, ImageDraw
 ASSETS = Path(__file__).resolve().parent.parent / "assets"
 SIZES = (16, 24, 32, 48, 64, 128, 256)
 
-TOP = (108, 150, 255, 255)      # lighter accent, top of the gradient
-BOTTOM = (38, 92, 240, 255)     # deeper accent, bottom
-GLYPH = (255, 255, 255, 255)
+TOP = (36, 38, 42, 255)         # stealth black, lifted toward titanium
+BOTTOM = (11, 12, 13, 255)      # stealth black
+GLYPH = (57, 255, 122, 255)     # venom green #39FF7A
 
 CANVAS = 1024  # drawn large, then downsampled for crisp edges
 

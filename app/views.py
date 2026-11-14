@@ -501,7 +501,8 @@ class SettingsView(ctk.CTkFrame):
             look, values=["System", "Light", "Dark"],
             command=lambda value: controller.set_appearance(value.lower()),
             height=t.H_CTRL, corner_radius=t.R_CTRL,
-            selected_color=t.ACCENT, selected_hover_color=t.ACCENT_HOVER,
+            # Soft fill: one text_color must read on both selected and unselected.
+            selected_color=t.ACCENT_SOFT, selected_hover_color=t.ACCENT_SOFT,
             unselected_color=t.SURFACE_SUNKEN, unselected_hover_color=t.HOVER,
             text_color=t.TEXT, font=t.fonts().body)
         look.add_row("Theme", "Changes apply immediately.", self.appearance)

@@ -203,7 +203,7 @@ def popup_menu(master) -> tk.Menu:
     return tk.Menu(master, tearoff=0,
                    bg=t.SURFACE_RAISED[index], fg=t.TEXT[index],
                    activebackground=t.ACCENT[index],
-                   activeforeground="#FFFFFF",
+                   activeforeground=t.TEXT_ON_ACCENT[index],
                    disabledforeground=t.TEXT_FAINT[index],
                    borderwidth=0, activeborderwidth=0,
                    font=("Segoe UI", 9))

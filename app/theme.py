@@ -9,30 +9,34 @@ from __future__ import annotations
 
 import customtkinter as ctk
 
+# Palette: Stealth Black (main, 60%), Titanium Grey (second, 30%),
+# Venom Green #39FF7A (accent, 10%). Light mode uses a deeper green, since
+# #39FF7A on white is unreadable as text.
+
 # ── Surfaces ────────────────────────────────────────────────────────────────
-BG = ("#EFF1F4", "#0B0C10")           # window background, behind every card
-SIDEBAR = ("#FFFFFF", "#101217")      # navigation rail
-SURFACE = ("#FFFFFF", "#15171D")      # cards
-SURFACE_RAISED = ("#FFFFFF", "#1A1D24")  # cards that sit on top of cards
-SURFACE_SUNKEN = ("#F1F3F6", "#101217")  # inputs, wells
-HOVER = ("#F1F3F6", "#1F232B")
-BORDER = ("#E4E7EC", "#23262F")
-BORDER_STRONG = ("#D3D8E0", "#2F333E")
-TRACK = ("#E6E9EF", "#23262F")
+BG = ("#E9EBED", "#0B0C0D")           # window background, behind every card
+SIDEBAR = ("#F7F8F9", "#101113")      # navigation rail
+SURFACE = ("#FFFFFF", "#141517")      # cards
+SURFACE_RAISED = ("#FFFFFF", "#1A1C1F")  # cards that sit on top of cards
+SURFACE_SUNKEN = ("#EEF0F2", "#0F1011")  # inputs, wells
+HOVER = ("#E6E8EB", "#1F2124")
+BORDER = ("#DCDFE3", "#25282C")
+BORDER_STRONG = ("#C7CBD0", "#33373C")
+TRACK = ("#DFE2E6", "#25282C")
 
 # ── Text ────────────────────────────────────────────────────────────────────
-TEXT = ("#13151A", "#EEF0F4")
-TEXT_DIM = ("#5A6170", "#8E96A6")
-TEXT_FAINT = ("#878E9B", "#606876")
-TEXT_ON_ACCENT = "#FFFFFF"
+TEXT = ("#0E0F11", "#ECEEF0")
+TEXT_DIM = ("#565B62", "#9AA0A6")     # titanium grey
+TEXT_FAINT = ("#868B92", "#666B71")
+TEXT_ON_ACCENT = ("#FFFFFF", "#06120A")  # dark text: white on venom is unreadable
 
 # ── Accent & semantics ──────────────────────────────────────────────────────
-ACCENT = ("#2F6BFF", "#4C82FF")
-ACCENT_HOVER = ("#2457DB", "#6B98FF")
-ACCENT_SOFT = ("#E9F0FF", "#18233C")
+ACCENT = ("#0B8A3E", "#39FF7A")       # venom green
+ACCENT_HOVER = ("#097534", "#6BFF9A")
+ACCENT_SOFT = ("#E1F7E9", "#10261A")
 
-SUCCESS = ("#0E8A57", "#3CC68E")
-SUCCESS_SOFT = ("#E3F5EC", "#102A20")
+SUCCESS = ("#13784A", "#5FD38D")      # calmer than the accent, so "done" reads apart
+SUCCESS_SOFT = ("#E4F4EA", "#112219")
 
 DANGER = ("#C33327", "#F4685C")
 DANGER_SOFT = ("#FBE9E7", "#301A19")
@@ -50,9 +54,9 @@ R_PILL = 20
 XS, SM, MD, LG, XL, XXL = 4, 8, 12, 16, 24, 32
 
 # ── Selection (table rows) ──────────────────────────────────────────────────
-SELECTED = ("#E9F0FF", "#1B2742")
-SELECTED_BORDER = ("#BFD3FF", "#2C3B5E")
-ROW_ALT = ("#FAFBFC", "#131519")
+SELECTED = ("#E4F7EB", "#12241A")
+SELECTED_BORDER = ("#A9E5BF", "#1F4A2F")
+ROW_ALT = ("#FAFBFB", "#121315")
 
 # ── Sizing ──────────────────────────────────────────────────────────────────
 SIDEBAR_W = 206
