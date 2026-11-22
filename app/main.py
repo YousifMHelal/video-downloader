@@ -14,7 +14,7 @@ import customtkinter as ctk
 from . import theme as t
 from .core import (CONTAINER_BY_LABEL, FFMPEG_DIR, PROJECT_ROOT,
                    QUALITY_BY_LABEL, Engine, Job, Status, ffmpeg_present,
-                   human_speed, looks_like_url)
+                   human_speed, looks_like_url, set_clipboard_text)
 from .dialogs import AboutDialog, AddDownloadDialog
 from .store import CONFIG_DIR, History, HistoryEntry, Settings
 from .views import HistoryView, QueueView, SettingsView
@@ -564,8 +564,9 @@ class App(ctk.CTk):
             self.copy_text(job.url)
 
     def copy_text(self, text: str) -> None:
-        self.clipboard_clear()
-        self.clipboard_append(text)
+        if not set_clipboard_text(text):
+            self.clipboard_clear()
+            self.clipboard_append(text)
         self._clipboard_seen = text
         self.toast.show("Link copied")
 

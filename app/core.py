@@ -180,6 +180,54 @@ def looks_like_url(text: str) -> bool:
     return bool(re.match(r"^(https?://|www\.)\S+\.\S+", text.strip(), re.I))
 
 
+def set_clipboard_text(text: str) -> bool:
+    """Put text on the Windows clipboard for real; False when that is not possible.
+
+    Tk only promises the text and serves it when something pastes, so a paste
+    after this app is closed or busy gets nothing.
+    """
+    if sys.platform != "win32" or not text:
+        return False
+    import ctypes
+    from ctypes import wintypes
+
+    user32, kernel32 = ctypes.windll.user32, ctypes.windll.kernel32
+    user32.OpenClipboard.argtypes = [wintypes.HWND]
+    user32.SetClipboardData.argtypes = [wintypes.UINT, wintypes.HANDLE]
+    user32.SetClipboardData.restype = wintypes.HANDLE
+    kernel32.GlobalAlloc.argtypes = [wintypes.UINT, ctypes.c_size_t]
+    kernel32.GlobalAlloc.restype = wintypes.HGLOBAL
+    kernel32.GlobalLock.argtypes = [wintypes.HGLOBAL]
+    kernel32.GlobalLock.restype = wintypes.LPVOID
+    kernel32.GlobalUnlock.argtypes = [wintypes.HGLOBAL]
+    kernel32.GlobalFree.argtypes = [wintypes.HGLOBAL]
+    kernel32.GlobalFree.restype = wintypes.HGLOBAL
+
+    buffer = ctypes.create_unicode_buffer(text)
+    size = ctypes.sizeof(buffer)
+    if not user32.OpenClipboard(None):
+        return False  # another app holds the clipboard this instant
+    try:
+        handle = kernel32.GlobalAlloc(0x0002, size)  # GMEM_MOVEABLE
+        if not handle:
+            return False
+        pointer = kernel32.GlobalLock(handle)
+        if not pointer:
+            kernel32.GlobalFree(handle)
+            return False
+        ctypes.memmove(pointer, buffer, size)
+        kernel32.GlobalUnlock(handle)
+        user32.EmptyClipboard()
+        if not user32.SetClipboardData(13, handle):  # CF_UNICODETEXT
+            kernel32.GlobalFree(handle)
+            return False
+    except OSError:
+        return False
+    finally:
+        user32.CloseClipboard()
+    return True
+
+
 def default_download_dir() -> str:
     home = Path(os.path.expanduser("~")) / "Downloads"
     return str(home if home.exists() else PROJECT_ROOT / "Downloads")
