@@ -48,7 +48,9 @@ def build(onedir: bool) -> Path:
         "--name", NAME,
         "--icon", str(ICON),
         "--add-data", f"{ROOT / 'assets'}{os.pathsep}assets",
-        "--collect-data", "customtkinter",
+        # --collect-all, not --collect-data: customtkinter 6 is imported
+        # lazily from gui.py, so PyInstaller misses its modules otherwise.
+        "--collect-all", "customtkinter",
         # yt-dlp ships its own PyInstaller hook that pulls in the extractors;
         # collecting its submodules by hand only makes the build crawl.
         "--exclude-module", "tkinter.test",
